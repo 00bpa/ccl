@@ -72,9 +72,10 @@ struct tagBinarySearchTree {
 	DestructorFunction DestructorFn;
 } ;
 
-static const guid BinarySearchTreeGuid = {0x9a011719, 0x22ac, 0x461d,
-{0x89,0xa1,0x75,0xd4,0x4b,0x85,0x53,0xfb}
-};
+/* static const guid BinarySearchTreeGuid = {
+    0x9a011719, 0x22ac, 0x461d,
+    {0x89,0xa1,0x75,0xd4,0x4b,0x85,0x53,0xfb}
+};  UNUSED! */
 
 static BinarySearchTree * Create(size_t ElementSize)
 {
@@ -311,7 +312,7 @@ static void destroy_left(BinarySearchTree *tree, BinarySearchTreeNode *node)
 			destroy_right(tree, *position);
 			if (tree->DestructorFn)
 				tree->DestructorFn(*position);
-			
+
 			tree->Allocator->free(*position);
 			*position = NULL;
 			tree->count--; /* Adjust the size of the tree. */
@@ -332,7 +333,7 @@ static void destroy_right(BinarySearchTree *tree, BinarySearchTreeNode *node)
 			destroy_right(tree, *position);
 			if (tree->DestructorFn)
 				tree->DestructorFn(*position);
-			
+
 			tree->Allocator->free(*position);
 			*position = NULL;
 			tree->count--;
@@ -493,7 +494,7 @@ static int Remove(BinarySearchTree *tree, const void *data, void *ExtraArgs)
 	}
 	if (tree->DestructorFn)
 		tree->DestructorFn(z);
-	
+
 	tree->Allocator->free(z);
 	tree->count--;
 	if (k < 0) {
@@ -852,4 +853,3 @@ BinarySearchTreeInterface iBinarySearchTree = {
 	Create,
 	SetDestructor,
 };
-

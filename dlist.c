@@ -271,32 +271,32 @@ static int Add(Dlist *l,const void *elem)
 
 static int AddRange(Dlist * AL,size_t n, const void *data)
 {
-        const unsigned char *p;
+    const unsigned char *p;
 
-        if (AL == NULL) {
-                return iError.NullPtrError("iList.AddRange");
+    if (AL == NULL) {
+        return iError.NullPtrError("iList.AddRange");
+    }
+    if (AL->Flags & CONTAINER_READONLY) {
+        AL->RaiseError("iList.AddRange",CONTAINER_ERROR_READONLY);
+        return CONTAINER_ERROR_READONLY;
+    }
+    if (data == NULL) {
+        AL->RaiseError("iList.AddRange",CONTAINER_ERROR_BADARG);
+        return CONTAINER_ERROR_BADARG;
+    }
+    p = data;
+    while (n > 0) {
+        int r = Add_nd(AL,p);
+        if (r < 0) {
+            return r;
         }
-        if (AL->Flags & CONTAINER_READONLY) {
-                AL->RaiseError("iList.AddRange",CONTAINER_ERROR_READONLY);
-                return CONTAINER_ERROR_READONLY;
-        }
-        if (data == NULL) {
-                AL->RaiseError("iList.AddRange",CONTAINER_ERROR_BADARG);
-                return CONTAINER_ERROR_BADARG;
-        }
-    	p = data;
-        while (n > 0) {
-                int r = Add_nd(AL,p);
-                if (r < 0) {
-                        return r;
-                }
-                p += AL->ElementSize;
-        }
-        AL->timestamp++;
+        p += AL->ElementSize;
+    }
+    AL->timestamp++;
     if (AL->Flags & CONTAINER_HAS_OBSERVER)
         iObserver.Notify(AL,CCL_ADDRANGE,data,(void *)n);
 
-        return 1;
+    return 1;
 }
 
 /*------------------------------------------------------------------------
@@ -364,7 +364,7 @@ static size_t Size(const Dlist *l)
 static CompareFunction SetCompareFunction(Dlist *l,CompareFunction fn)
 {
     CompareFunction oldfn;
-    
+
 
     if (l == NULL) {
     	iError.NullPtrError("iDlist.Size");
@@ -441,7 +441,7 @@ static int Finalize(Dlist *l)
     unsigned Flags;
 
     if (l == NULL) return CONTAINER_ERROR_BADARG;
-    
+
     Flags = l->Flags;
     t = Clear(l);
     if (Flags & CONTAINER_HAS_OBSERVER)
@@ -515,7 +515,7 @@ static int ReplaceAt(Dlist *l,size_t position,const void *data)
     	}
     }
     if (l->DestructorFn)
-    	l->DestructorFn(&rvp->Data);	
+    	l->DestructorFn(&rvp->Data);
     /* Replace the data there */
     memcpy(&rvp->Data , data,l->ElementSize);
     l->timestamp++;
@@ -705,7 +705,7 @@ static int PopFront(Dlist *l,void *result)
     DlistElement *le;
 
     if (l == NULL) return iError.NullPtrError("iDlist.PopFront");
-    
+
     if (l->count == 0)
     	return 0;
     if (l->Flags & CONTAINER_READONLY) {
@@ -737,7 +737,7 @@ static int PopBack(Dlist *l,void *result)
     DlistElement *le;
 
     if (l == NULL) return iError.NullPtrError("iDlist.PopBack");
-    
+
     if (l->count == 0)
     	return 0;
     if (l->Flags & CONTAINER_READONLY) {
@@ -874,7 +874,7 @@ static int EraseAt(Dlist *l,size_t position)
     void *removed=NULL;
 
     if (l == NULL) return iError.NullPtrError("iDlist.InsertIn");
-    
+
     if (position >= l->count) {
     	l->RaiseError("iDlist.EraseAt",CONTAINER_ERROR_INDEX,l,position);
     	return CONTAINER_ERROR_INDEX;
@@ -1139,7 +1139,7 @@ static int Sort(Dlist *l)
     CompareInfo ci;
 
     if (l == NULL) return iError.NullPtrError("iDlist.Sort");
-    
+
     if (l->Flags&CONTAINER_READONLY) {
     	l->RaiseError("iDlist.Sort",CONTAINER_ERROR_READONLY);
     	return CONTAINER_ERROR_READONLY;
@@ -1222,7 +1222,7 @@ static void *GetNext(Iterator *it)
     if (L->Flags & CONTAINER_READONLY) {
     	memcpy(li->ElementBuffer,li->Current->Data,L->ElementSize);
     	result = li->ElementBuffer;
-    }	
+    }
     else result = li->Current->Data;
     li->Current = li->Current->Next;
     li->index++;
@@ -1262,16 +1262,16 @@ static void *GetFirst(Iterator *it)
     if (L->Flags & CONTAINER_READONLY) {
     	memcpy(li->ElementBuffer,L->First->Data,L->ElementSize);
     	return li->ElementBuffer;
-    }	
+    }
     return L->First->Data;
 }
 
-static int ReplaceWithIterator(Iterator *it, void *data,int direction) 
+static int ReplaceWithIterator(Iterator *it, void *data,int direction)
 {
     struct DListIterator *li = (struct DListIterator *)it;
 	int result;
 	size_t pos;
-	
+
 	if (it == NULL) {
 		iError.RaiseError("Replace",CONTAINER_ERROR_BADARG);
 		return 0;
@@ -1279,7 +1279,7 @@ static int ReplaceWithIterator(Iterator *it, void *data,int direction)
 	if (li->L->Flags & CONTAINER_READONLY) {
 		li->L->RaiseError("Replace",CONTAINER_ERROR_READONLY);
 		return CONTAINER_ERROR_READONLY;
-	}	
+	}
 	if (li->L->count == 0)
 		return 0;
     if (li->timestamp != li->L->timestamp) {
@@ -1306,7 +1306,7 @@ static int ReplaceWithIterator(Iterator *it, void *data,int direction)
 static void *GetCurrent(Iterator *it)
 {
     struct DListIterator *li = (struct DListIterator *)it;
-    
+
     if (li == NULL) {
         iError.NullPtrError("iDlist.GetCurrent");
         return NULL;
@@ -1370,7 +1370,7 @@ static void doinit(struct DListIterator *result,Dlist *L)
 static Iterator *NewIterator(Dlist *L)
 {
     struct DListIterator *result;
-    
+
     if (L == NULL) {
     	iError.NullPtrError("iDlist.NewIterator");
     	return NULL;
@@ -1387,7 +1387,7 @@ static Iterator *NewIterator(Dlist *L)
 static int InitIterator(Dlist *L,void *buf)
 {
     struct DListIterator *result;
-    
+
     if (L == NULL) {
     	iError.NullPtrError("iDlist.NewIterator");
     	return CONTAINER_ERROR_BADARG;
@@ -1402,7 +1402,7 @@ static int Append(Dlist *l1, Dlist *l2)
 {
 
     if (l1 == NULL || l2 == NULL)  return iError.NullPtrError("iDlist.Append");
-    
+
     if ((l1->Flags & CONTAINER_READONLY) || (l2->Flags & CONTAINER_READONLY)) {
     	l1->RaiseError("iDlist.Append",CONTAINER_ERROR_READONLY);
     	return CONTAINER_ERROR_READONLY;
@@ -1432,8 +1432,8 @@ static int Append(Dlist *l1, Dlist *l2)
 }
 
 
-static size_t GetElementSize(const Dlist *d) 
-{ 
+static size_t GetElementSize(const Dlist *d)
+{
     if (d == NULL) {
     	iError.NullPtrError("iDlist.GetElementSize");
     	return 0;
@@ -1453,9 +1453,9 @@ static int deleteIterator(Iterator *it)
 {
     struct DListIterator *li = (struct DListIterator *)it;
     Dlist *L;
-    
+
     if (it == NULL) return iError.NullPtrError("iDlist.DeleteIterator");
-    
+
     L = li->L;
     L->Allocator->free(it);
     return 1;
@@ -2037,4 +2037,3 @@ DlistInterface iDlist = {
     MoveBack,
     SplitAfter,
 };
-

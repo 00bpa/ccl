@@ -592,7 +592,7 @@ static size_t Print(BitString *b,size_t bufsiz,unsigned char *out)
 	size_t result=0,j=b->count;
 	unsigned char *top = out+bufsiz-1;
 	size_t i;
-	
+
 	for (i=b->count-1; j>0; i--) {
 		if (out && out >= top)
 			break;
@@ -671,7 +671,7 @@ static BitString *Reverse(BitString *b)
 static size_t Sizeof(BitString *b)
 {
 	size_t result = sizeof(BitString);
-	if (b )		
+	if (b )
 		result += b->capacity;
 	return result;
 }
@@ -709,12 +709,12 @@ static int Add(BitString *b,int newval)
 	/* Test if the new size + 1 will fit */
 	bytepos = (1+b->count) >> 3;
 	if (bytepos >= b->capacity) {
-		if (!expandBitstring(b))	
+		if (!expandBitstring(b))
 			return CONTAINER_ERROR_NOMEMORY;
 	}
 	bytepos = b->count>>3;
 	bitpos = b->count&(CHAR_BIT-1);
-	if (newval)		
+	if (newval)
 		b->contents[bytepos] |= 1 << bitpos;
 	else
 		b->contents[bytepos] &= ~(1 << bitpos);
@@ -750,7 +750,7 @@ static int PopBack(BitString *b){
 	idx = b->count-1;
 	bytepos = (idx >> 3);
 	bitpos = idx &(CHAR_BIT-1);
-	if (b->contents[bytepos]&(1 << bitpos))		
+	if (b->contents[bytepos]&(1 << bitpos))
 		result = 1;
 	else result = 0;
 	b->count--;
@@ -832,11 +832,11 @@ static size_t bitBitstr(BitString *Text,BitString *Pat)
 			pText = text+k; /* Will point at the current start character in the text */
 			/* The first character needs a mask since there could be
 			unused bits */
-			if ((*pText++ & mask[i]) != *ptable++)				
+			if ((*pText++ & mask[i]) != *ptable++)
 				break;
 			/* Search each byte in the input text until last byte minus 1 */
 			for (j=1; j<patByteLength-1; j++) {
-				if (*pText++ != *ptable++)					
+				if (*pText++ != *ptable++)
 					break;
 			}
 			if (j == patByteLength-1) {
@@ -921,6 +921,7 @@ static size_t InsertAt(BitString *b,size_t idx,int value)
 	size_t bitpos,newval;
 	unsigned carry;
 	int oldval;
+    int oldval_carry_check;
 	size_t bytepos,count,bytesToShift,bytesUsed;
 
 	if (b == NULL)
@@ -941,7 +942,8 @@ static size_t InsertAt(BitString *b,size_t idx,int value)
 		newval |= (oldval&mask[bitpos-1]);
 	if (bitpos < (CHAR_BIT-1))
 		newval |= (oldval << 1) & (((unsigned)-1) << (bitpos+1));
-	carry = (oldval << (CHAR_BIT-1))?1: 0;
+    oldval_carry_check = oldval << (CHAR_BIT-1);
+	carry = oldval_carry_check?1: 0;
 	b->contents[bytepos] = (unsigned char )newval;
 	idx += CHAR_BIT-bitpos;
 	bytesToShift = bytesUsed - (idx/CHAR_BIT);
@@ -1261,7 +1263,7 @@ static int Save(const BitString *bitstr,FILE *stream, SaveFunction saveFn,void *
 static BitString *Load(FILE *stream, ReadFunction readFn,void *arg)
 {
 	BitString tmp,*r;
-	
+
 	if (stream == NULL) {
 		NullPtrError("Load");
 		return NULL;
@@ -1414,4 +1416,3 @@ BitStringInterface iBitString = {
 	AddRange,
 	GetAllocator,
 };
-

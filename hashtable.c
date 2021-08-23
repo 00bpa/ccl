@@ -380,6 +380,7 @@ static int Remove(HashTable *ht,const void *key,size_t klen)
 
 static int Clear(HashTable *ht)
 {
+#pragma GCC diagnostic warning "-Wuninitialized"
     HashIndex HashIdx,*hi;
     for (hi = first(&HashIdx); hi; hi = next(hi))
         HashSet(ht, hi->This->key, hi->This->klen, NULL);
@@ -872,4 +873,3 @@ Save,
 Load,
 SetDestructor,
 };
-
